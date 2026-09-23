@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  # ---------- Qdrant vector database ----------
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  # ---------- FastAPI backend ----------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITHUB_REDIRECT_URI=http://localhost:5173/auth/callback
+      - EMBEDDING_MODEL_NAME=sentence-transformers/paraphrase-MPNet-base-v2
+      - LLM_MODEL_NAME=google/flan-t5-base
+      - DEBUG=true
+    depends_on:
+      - qdrant
+    restart: unless-stopped
+
+  # ---------- React frontend ----------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
