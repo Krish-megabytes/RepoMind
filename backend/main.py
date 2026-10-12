@@ -27,10 +27,10 @@ app.include_router(auth.router)
 
 
 # ---------- Dependency ----------
-async def require_user(token: str = Depends(auth.get_current_user)):
-    if token is None:
+async def require_user(user: auth.User | None = Depends(auth.get_current_user)):
+    if user is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    return token
+    return user
 
 
 # ---------- Health ----------

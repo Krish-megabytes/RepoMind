@@ -8,7 +8,7 @@ Implements:
 
 from dataclasses import dataclass
 import httpx
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Header
 from fastapi.responses import RedirectResponse
 from .config import settings
 
@@ -78,23 +78,31 @@ async def callback(code: str):
     return {"access_token": access_token, "user": user.__dict__}
 
 
-async def get_current_user(token: str) -> User | None:
-    """Validate a token and return the associated user, or None."""
+async def get_current_user(authorization: str | None = Header(default=None)) -> User | None:
+    """Validate a bearer token from Authorization header and return the associated user, or None."""
+    if not authorization:
+        return None
+    token = authorization.replace("Bearer ", "").strip()
+    if not token:
+        return None
     if token in _sessions:
         return _sessions[token]
     # Attempt a live lookup against GitHub
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            GITHUB_USER_API,
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        if resp.status_code != 200:
-            return None
-        data = resp.json()
-        user = User(
-            id=str(data["id"]),
-            login=data["login"],
-            avatar_url=data.get("avatar_url", ""),
-        )
-        _sessions[token] = user
-        return user
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                GITHUB_USER_API,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            if resp.status_code != 200:
+                return None
+            data = resp.json()
+            user = User(
+                id=str(data["id"]),
+                login=data["login"],
+                avatar_url=data.get("avatar_url", ""),
+            )
+            _sessions[token] = user
+            return user
+    except Exception:
+        return None

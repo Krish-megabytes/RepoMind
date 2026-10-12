@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     # Embedding model
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/paraphrase-MPNet-base-v2"
+    EMBEDDING_DIM: int = 768
 
     # LLM model (Flan-T5)
     LLM_MODEL_NAME: str = "google/flan-t5-base"

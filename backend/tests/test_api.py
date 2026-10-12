@@ -49,7 +49,7 @@ def test_ingest_endpoint(client, mock_user):
             data = response.json()
             assert data["detail"] == "Ingestion started"
             assert data["repo_id"] == "owner_repo"
-            mock_ingest.assert_awaited_once_with("https://github.com/owner/repo/", user_id="12345")
+            mock_ingest.assert_awaited_once_with("https://github.com/owner/repo", user_id="12345")
     finally:
         app.dependency_overrides.clear()
 
