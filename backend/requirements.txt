@@ -3,6 +3,7 @@ uvicorn[standard]==0.29.0
 gitpython==3.1.43
 whoosh==2.7.4
 pydantic==2.6.2
+pydantic-settings==2.2.1
 qdrant-client==1.9.1
 sentence-transformers==2.3.1
 transformers==4.40.1
